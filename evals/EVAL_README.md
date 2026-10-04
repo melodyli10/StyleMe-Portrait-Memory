@@ -1,15 +1,20 @@
 # Final held-out evaluation
 
-Final version-3 held-out evaluation (baseline: `first-confirmed-example`, scope: Eye Enlargement + Face Slimming), supplied by the author:
+The final evaluation compared **Fixed Preset** with **StyleMe** on ten held-out portraits.
 
-- 10 held-out portraits: **4 successfully scored paired cases**, 6 safely skipped, 0 failed.
-- Fixed Preset: **7 total corrections**, **1.75 mean corrections per scored image**.
-- StyleMe: **3 total corrections**, **0.75 mean corrections per scored image**.
-- Reduction: `(7 - 3) / 7 × 100 = 57.1%`, calculated only on the four evaluable paired cases.
+## Final result
 
-The original >=30% target was exceeded within the evaluable subset. This does not demonstrate broad generalization: only 4/10 portraits were evaluable. The six safety skips are excluded from correction means, not counted as successful zero-correction cases.
+- 10 held-out portraits
+- **4 successfully scored paired cases**
+- **6 safely skipped**
+- **0 processing failures**
+- Fixed Preset: **7 total corrections**, **1.75 mean corrections per scored image**
+- StyleMe: **3 total corrections**, **0.75 mean corrections per scored image**
+- Relative reduction: **57.1%**
 
-The protocol remained frozen and A/B identities were concealed until finalization. The author remained the evaluator and supplied the finalized results recorded in [results.csv](results.csv). The locked [evaluation procedure](evaluation_protocol.md) has not changed. The CSV is a documentation transcription, not a new application export format.
+The original target was at least 30% fewer average correction units than Fixed Preset. StyleMe exceeded this target within the four evaluable paired cases.
+
+The 57.1% figure does **not** describe all ten portraits. Six portraits were skipped and kept separate from the correction averages.
 
 ## Case-level outcomes
 
@@ -26,16 +31,50 @@ The protocol remained frozen and A/B identities were concealed until finalizatio
 | H09 | — | — | Skipped: eyes too small to adjust safely |
 | H10 | 2 | 1 | Scored |
 
-Each setting contributes 0 if no further adjustment is needed or 1 if adjustment is required; each scored output has 0–2 units. Skipped CSV rows retain empty numeric fields and explicit reasons. Six skipped cases are not zero-correction wins. Means divide totals by four scored pairs, not ten portraits.
+One correction means one supported setting still needs manual adjustment after the automatic output. Eye Enlargement and Face Slimming were each scored 0 or 1, giving 0–2 correction units per scored output.
+
+Skipped cases were never counted as successful zero-correction outputs.
 
 ## What was compared
 
-Fixed Preset used the first confirmed setup photo: Eye 34 / Face 57. The five confirmed Eye/Face pairs were 34/57, 43/53, 46/65, 47/68 and 43/65. Their geometry/preference relationship did not pass the existing validation checks. StyleMe therefore used the five-photo median fallback: Eye 43 / Face 65. No confirmations or adaptation checks were changed.
+Fixed Preset used the first confirmed development example:
 
-The measured comparison is a first-example fixed preset versus a multi-example remembered median, subject to the same per-image safety rules. It is not evidence that geometry-dependent Eye adaptation produced the reduction. Face Slimming has no separate learned strength predictor.
+- Eye Enlargement = 34
+- Face Slimming = 57
 
-## Interpretation and limits
+The five confirmed development pairs were:
 
-The >=30% target was exceeded only within the four scored paired cases. StyleMe reduced manual correction needs on portraits it could safely process, but coverage was limited. The observed coverage bottleneck was reliable face/eye geometry on smaller or less suitable portraits: four no-face skips, one unreliable/nearly-closed-eye skip and one eyes-too-small skip. This small experiment does not establish broad generalization.
+- 34 / 57
+- 43 / 53
+- 46 / 65
+- 47 / 68
+- 43 / 65
 
-The author evaluated their own preferences. Concealing A/B identities reduces obvious method cues but cannot eliminate evaluator bias or prevent source inspection. Software tests are separate from these supplied evaluation results.
+Their median was Eye 43 / Face 65.
+
+I tested whether Eye Enlargement could adapt to the detected face geometry, but the five examples did not show a clear pattern between geometry and my preferred settings. I therefore kept the median rather than forcing an adaptation rule.
+
+The final measured comparison was therefore:
+
+**Fixed Preset 34/57 vs StyleMe median 43/65**, with the same per-image safety checks.
+
+The 57.1% reduction is not evidence that geometry-based adaptation improved the result.
+
+## Blind scoring
+
+The Evaluation Lab presented the two methods as anonymous Output A and Output B. Their identities were hidden during scoring and revealed only after finalization.
+
+The protocol, acceptance criteria, profile and held-out dataset were frozen before scoring. The author remained the evaluator, so concealing A/B identity reduced one source of bias but did not remove evaluator subjectivity.
+
+See:
+- [Evaluation protocol](evaluation_protocol.md)
+- [Case-level results](results.csv)
+- [Final evaluation export](final_evaluation.json)
+
+## Interpretation
+
+StyleMe required fewer manual corrections than the fixed preset on the portraits it could safely process.
+
+The main limitation was coverage: only 4/10 held-out portraits were evaluable. Four had no reliable single-face detection, one had unreliable or nearly closed eye geometry, and one had eyes that were too small to adjust safely.
+
+The dataset is also small and comes from one person and one photo series. These results therefore do not establish broad generalization.
