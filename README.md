@@ -1,72 +1,344 @@
 # StyleMe: A Personal Retouch Memory for Portrait Editing
 
-StyleMe is a browser prototype for people who repeat similar personal edits across portraits. It stores confirmed retouch settings and reapplies them using the next portrait’s detected face geometry. The user chooses the preferred look.
+StyleMe is a browser-based portrait editing prototype that remembers retouch settings a user has already confirmed and reuses them on another portrait.
 
-[Public application](https://styleme-portrait-memory.melodyli10-6666.chatgpt.site/) · [Product documentation](PRODUCT_DOCUMENTATION.md) · [Evaluation procedure](evals/evaluation_protocol.md)
+The project focuses on a simple problem: people often repeat similar edits across portrait photos, but a generic preset applies the same values to every image and starting from zero each time is repetitive. StyleMe keeps the user in control. The user chooses the preferred edit, confirms it, and the system stores those settings as a personal Retouch Memory.
 
-## Implemented scope
+The current prototype supports two retouch settings:
 
-Eye Enlargement, Face Slimming, five-photo confirmed Retouch Memory, Fixed Preset and Smart Style, aligned before/after comparison, exact reset and original-resolution PNG export. MediaPipe provides landmarks; local pixel-processing rules produce the edit. Smart Style can adapt eye strength when the confirmed examples support it; face strength uses the confirmed median and is fitted to the current geometry. No generative editing model is used.
+- Eye Enlargement
+- Face Slimming
+
+MediaPipe Face Landmarker is used to detect facial landmarks. The actual edits are produced with local browser-based image-processing rules rather than a generative image model.
+
+**Public application:**  
+https://styleme-portrait-memory.melodyli10-6666.chatgpt.site/
+
+**Product documentation:**  
+[PRODUCT_DOCUMENTATION.md](PRODUCT_DOCUMENTATION.md)
+
+**Evaluation protocol:**  
+[evals/evaluation_protocol.md](evals/evaluation_protocol.md)
+
+---
+
+## What StyleMe does
+
+The main workflow is:
+
+**Upload portrait → Edit → Confirm → Build Retouch Memory → Apply to another portrait → Compare → Export**
+
+A user first adjusts Eye Enlargement and Face Slimming until the portrait looks right to them. After five confirmed development examples, StyleMe builds a personal profile from those settings.
+
+For the final development profile, the five confirmed Eye/Face settings were:
+
+- 34 / 57
+- 43 / 53
+- 46 / 65
+- 47 / 68
+- 43 / 65
+
+The profile median was:
+
+- Eye Enlargement: **43**
+- Face Slimming: **65**
+
+The five examples did not show a consistent relationship between detected face geometry and preferred edit strength. StyleMe therefore used the median saved preference instead of forcing a geometry-based adaptation rule.
+
+If the face or eye geometry is not reliable enough, the system skips the edit rather than guessing.
+
+Other implemented functions include:
+
+- before/after comparison
+- exact reset to the original image
+- original-resolution PNG export
+- local Retouch Memory
+- English, Simplified Chinese and Korean interface
+- browser-based evaluation workflow
+
+---
+
+## Technical approach
+
+StyleMe uses a narrow computer-vision approach.
+
+MediaPipe Face Landmarker provides facial landmarks from the current portrait. StyleMe then uses its own local logic to:
+
+1. read the detected face geometry
+2. load the confirmed retouch preference
+3. check whether the image is safe to edit
+4. apply Eye Enlargement and Face Slimming
+5. show the result for user review
+6. export the final image if accepted
+
+The editing path does not use a generative image model, RAG or an AI agent.
+
+These approaches were not needed for this problem. The task only requires small, repeatable portrait adjustments. A generative model would add cost, latency and less predictable output. RAG would not help because there is no knowledge-retrieval problem, while an agent would add extra orchestration without improving the core edit.
+
+MediaPipe runs locally in the browser, so there is no paid AI model call for each edited photo.
+
+---
 
 ## Run locally
 
-Use Node.js 22.12+ and npm. From the repository:
+### Requirements
 
-```sh
+- Node.js 22.12 or later
+- npm
+
+### Install and run
+
+```bash
 npm ci
 npm run dev
 ```
 
-Open the localhost URL printed by Vite. The Evaluation link opens `/evaluation/`.
+Open the local URL shown by Vite.
 
-```sh
+### Run tests
+
+```bash
 npm test
-npm run build
-node scripts/check-public-build.mjs
-npm run preview
 ```
 
-The stack is vanilla JavaScript, HTML/CSS, Vite, MediaPipe Tasks Vision, Canvas 2D, localStorage, Node’s test runner and fontsource fonts. Selected locale fonts and the landmark runtime/model also use external downloads.
+### Build
 
-## Repository map
+```bash
+npm run build
+```
 
-- `src/main.js`: editor state, detection, confirmation and reset.
-- `src/displayRectangle.js`, `src/product.js`, `src/preview.js`: contained display sizing and comparison.
-- `src/eyeWarp.js`, `src/faceWarp.js`, `src/imagePipeline.js`: local retouch processing.
-- `src/styleProfile.js`, `src/rememberedStyle.js`, `src/preferences.js`: confirmed memory and application.
-- `src/exportImage.js`: PNG export; `src/guideSnippet.js`: explicitly simulated walkthrough.
-- `evaluation/`: locked, anonymous scoring workflow and JSON export.
-- `tests/`: algorithm, state and workflow regression tests; browser test pages are development-only.
-- `data/`, `evals/`: dataset documentation and finalized case-level results, not source portraits.
+### Check the public build
+
+```bash
+node scripts/check-public-build.mjs
+```
+
+The final project build passed **101 tests**, and the production build and privacy/asset checks passed.
+
+---
+
+## Repository structure
+
+```text
+StyleMe-Portrait-Memory/
+├── README.md
+├── PRODUCT_DOCUMENTATION.md
+├── data/
+├── evals/
+├── evaluation/
+├── public/
+├── scripts/
+├── src/
+├── tests/
+├── index.html
+├── package.json
+├── package-lock.json
+└── vite.config.js
+```
+
+### Main folders
+
+**`src/`**  
+Main application source code, including face detection, retouch processing, saved preferences, comparison, reset and export.
+
+**`evaluation/`**  
+Code for the browser-based Evaluation Lab. It creates anonymous A/B outputs, records correction scores, keeps skipped cases separate and reveals method identity only after scoring is complete.
+
+**`evals/`**  
+Evaluation documentation and final results.
+
+It contains:
+
+- `EVAL_README.md` — explanation of the final evaluation
+- `evaluation_protocol.md` — scoring procedure defined before held-out scoring
+- `results.csv` — finalized case-level results
+
+**`data/`**  
+Dataset documentation.
+
+It contains:
+
+- `DATA_README.md` — dataset source, split and usage
+- `manifest.csv` — filenames and development/held-out split
+
+**`tests/`**  
+Tests for the main application logic and workflow.
+
+**`public/`**  
+Static assets used by the web application.
+
+**`scripts/`**  
+Build and public-asset checks.
+
+For more detail on the product architecture and code logic, see [PRODUCT_DOCUMENTATION.md](PRODUCT_DOCUMENTATION.md).
+
+---
+
+## Data
+
+The final dataset contains **15 portraits** from a graduation portrait series by photographer Quý Nguyễn on Pexels.
+
+- **5 development portraits**
+- **10 held-out evaluation portraits**
+
+The five development images were used to establish the confirmed Retouch Memory.
+
+The ten held-out images were kept separate until the rules, profile, acceptance criteria and evaluation procedure were frozen.
+
+The public repository does not publish the portrait files themselves. The filenames, split and source information are recorded in the `data/` folder. The source images can be submitted separately with the course materials for academic review.
+
+More details are available in:
+
+[Data documentation](data/DATA_README.md)
+
+---
 
 ## Evaluation
 
-Five development photos establish the confirmed profile; ten different held-out photos compare Fixed Preset with StyleMe. Fixed Preset freezes the first confirmed setup photo’s strengths; StyleMe uses the five-photo median, with eye adaptation only when the existing evidence checks pass. One correction unit is one supported setting still requiring adjustment. Eye Enlargement and Face Slimming each score 0 or 1, giving 0–2 per output. The proposal target is at least 30% fewer average corrections than Fixed Preset. Skips/failures remain separate, never zero-correction successes. Existing eye-only sessions retain their original scoring contract; the finalized run used version 3 with the corrected first-example baseline. Older sessions retain their original baseline.
+The main outcome metric was:
 
+**manual corrections still needed after the automatic edit**
 
-Final version-3 held-out evaluation (baseline: `first-confirmed-example`, scope: Eye Enlargement + Face Slimming), supplied by the author:
+One correction unit means that one supported setting still needs manual adjustment after seeing the automatic result.
 
-- 10 held-out portraits: **4 successfully scored paired cases**, 6 safely skipped, 0 failed.
-- Fixed Preset: **7 total corrections**, **1.75 mean corrections per scored image**.
-- StyleMe: **3 total corrections**, **0.75 mean corrections per scored image**.
-- Reduction: `(7 - 3) / 7 × 100 = 57.1%`, calculated only on the four evaluable paired cases.
+Each output was scored separately for:
 
-The original >=30% target was exceeded within the evaluable subset. This does not demonstrate broad generalization: only 4/10 portraits were evaluable. The six safety skips are excluded from correction means, not counted as successful zero-correction cases.
+- Eye Enlargement: 0 or 1 correction
+- Face Slimming: 0 or 1 correction
 
-Six portraits did not meet reliable single-face/eye geometry requirements. The five setup examples did not support a consistent geometry/preference relationship, so StyleMe used median Eye 43 / Face 65. No geometry-dependent improvement is claimed. See [case-level results](evals/results.csv).
+Each output therefore received **0–2 correction units**.
 
-## Privacy and limits
+The target defined before final evaluation was:
 
-Selected photos and landmarks are processed in the browser and are not uploaded by the editing flow. Confirmed numeric settings, compact geometry summaries and duplicate-check digests are stored locally; raw portraits and landmarks are not persisted. Evaluation records remain in localStorage until explicitly exported. Browser storage is not encrypted or a secure multi-user vault. Hosting, font and model requests still involve network access. The built-in sample cannot teach the profile or enter evaluation.
+**at least 30% fewer average correction units than Fixed Preset**
 
-The small evaluation set cannot establish broad generalization. Hair, occlusion and pose can limit contour edits; unsafe geometry may reduce or skip effects. The measured reduction applies only to the four safely processed pairs. Processing uses the user’s CPU/GPU and memory; no paid image-generation API is called. Downloads, hosting and device computation still have costs.
+### Fixed Preset
 
-## Development note
+The Fixed Preset used the first confirmed development example:
 
-This prototype is prepared for the PE6201 End-of-Course Project.
+- Eye Enlargement: **34**
+- Face Slimming: **57**
 
-Codex was used as a coding assistant to implement and debug parts of the browser prototype. The project framing, product scope, retouch-memory logic, evaluation design, final validation and interpretation of results were defined and verified by the author.
+These values were reused unchanged across the held-out portraits.
 
-The finalized scores were supplied by the author; automated software checks are not research results.
+### StyleMe
 
-Development result reported by the author: confirmed Eye/Face pairs are 34/57, 43/53, 46/65, 47/68 and 43/65. The geometry/preference relationship did not pass validation. Fixed Preset is therefore 34/57 and StyleMe falls back to median 43/65, subject to existing per-image safety rules. No adaptation checks or confirmations were changed, and the measured reduction is not attributed to geometry-dependent adaptation.
+StyleMe used the five-example Retouch Memory:
+
+- Eye Enlargement median: **43**
+- Face Slimming median: **65**
+
+The development examples did not support a consistent geometry/preference relationship, so StyleMe used the median preference rather than forcing a geometry-dependent adaptation rule.
+
+### Blind scoring
+
+The Evaluation Lab presented Fixed Preset and StyleMe as anonymous **Output A** and **Output B**.
+
+Their identities were hidden during scoring and revealed only after all scores were finalized.
+
+Skipped cases were recorded separately and were never counted as successful zero-correction results.
+
+---
+
+## Final evaluation results
+
+Ten held-out portraits were evaluated.
+
+- **4/10** portraits produced valid paired outputs for scoring
+- **6/10** portraits were safely skipped
+- **0** processing failures
+
+Across the four scored paired cases:
+
+| Method | Total corrections | Mean corrections per scored image |
+| --- | ---: | ---: |
+| Fixed Preset | 7 | 1.75 |
+| StyleMe | 3 | 0.75 |
+
+The relative reduction was:
+
+```text
+(7 - 3) / 7 × 100 = 57.1%
+```
+
+StyleMe therefore exceeded the original **30% reduction target within the four evaluable paired cases**.
+
+This does not mean that StyleMe reduced corrections by 57.1% across all ten portraits.
+
+Six held-out portraits were skipped:
+
+- 4 because a reliable single face was not detected
+- 1 because the eye geometry was unreliable or the eyes were nearly closed
+- 1 because the eyes were too small to adjust safely
+
+The six skipped cases were excluded from the correction averages and were not counted as zero-correction successes.
+
+Case-level results are available in:
+
+[evals/results.csv](evals/results.csv)
+
+---
+
+## Interpretation
+
+The evaluation suggests that the remembered preference reduced repeated manual corrections compared with one fixed preset on portraits the system could safely process.
+
+However, the current prototype has limited coverage.
+
+Only four of ten held-out portraits could be fairly scored. The main limitation was reliable face and eye geometry, especially when the subject was smaller in the image or the eyes were not suitable for editing.
+
+The dataset is also small and comes from one person and one graduation-photo series. The result therefore does not show broad generalization to different people, poses, lighting conditions or camera distances.
+
+The 57.1% reduction should also not be attributed to geometry-based adaptation. The development data did not support that rule, so StyleMe used the five-photo median preference.
+
+The final result is therefore best interpreted as:
+
+> On the four held-out portraits that could be safely processed, a remembered preference built from multiple confirmed examples required fewer manual corrections than one fixed preset.
+
+---
+
+## Privacy and limitations
+
+Portrait processing is performed locally in the browser.
+
+The editing workflow does not upload the selected portrait to an image-generation API. Confirmed numeric preferences and small geometry summaries are stored locally in the browser.
+
+Raw portrait pixels and facial landmarks are not stored as part of the Retouch Memory.
+
+Current limitations include:
+
+- reliable face detection is required
+- small faces may not be processed
+- closed or unclear eyes may cause a safe skip
+- pose, hair and nearby background can affect local deformation
+- the current evaluation set is small
+- the author is also the evaluator, so some subjective bias remains
+
+The blind A/B evaluation reduces obvious method bias but does not remove evaluator subjectivity completely.
+
+---
+
+## Product documentation
+
+Detailed product documentation is available here:
+
+[PRODUCT_DOCUMENTATION.md](PRODUCT_DOCUMENTATION.md)
+
+It includes:
+
+- Persona
+- Input
+- Output
+- Product architecture
+- Main code logic
+- External intelligence used
+- Target metric
+- Final metric reached
+- Practical limitations
+
+Detailed dataset and evaluation documentation are available in:
+
+- [data/DATA_README.md](data/DATA_README.md)
+- [evals/EVAL_README.md](evals/EVAL_README.md)
+- [evals/evaluation_protocol.md](evals/evaluation_protocol.md)
+- [evals/results.csv](evals/results.csv)
