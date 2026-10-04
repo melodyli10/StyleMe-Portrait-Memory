@@ -13,7 +13,7 @@ export function lockProtocol({id,profile,digests,criteria,skipPolicy},random=()=
  if(!criteria?.trim()||!skipPolicy?.trim())fail('Specify acceptance criteria and failure/skip handling before locking.')
  const cases=digests.map((digest,i)=>({id:`H${String(i+1).padStart(2,'0')}`,digest,status:'pending',detection:null,skipReason:null,identical:null,results:{}}))
  const mapping=Object.fromEntries(cases.map(c=>[c.id,random()<.5?{A:'fixed',B:'adaptive'}:{A:'adaptive',B:'fixed'}]))
- return {session:{id,version:2,lockedAt:new Date().toISOString(),scope:'Eye Enlargement and Face Slimming; 0–2 correction units per output',correctionUnit:'One supported parameter requiring adjustment; intermediate slider movements do not count.',criteria:criteria.trim(),skipPolicy:skipPolicy.trim(),profile:copy(profile),cases,finalizedAt:null},mapping}
+ return {session:{id,version:3,baseline:'first-confirmed-example',lockedAt:new Date().toISOString(),scope:'Eye Enlargement and Face Slimming; 0–2 correction units per output',correctionUnit:'One supported parameter requiring adjustment; intermediate slider movements do not count.',criteria:criteria.trim(),skipPolicy:skipPolicy.trim(),profile:copy(profile),cases,finalizedAt:null},mapping}
 }
 function mutable(session,caseId){if(session.finalizedAt)fail('Session is finalized. Scores cannot change.');const c=session.cases.find(c=>c.id===caseId);if(!c)fail('Unknown case.');return c}
 export function markCase(session,caseId,{status,detection,reason=null,identical=null,latencyMs=null}){
@@ -45,7 +45,7 @@ export function exportResults(session,mapping){
  const cases=session.cases.map(c=>({caseId:c.id,digest:c.digest,status:c.status,detection:c.detection,skipReason:c.skipReason,identical:c.identical,latencyMs:c.latencyMs,results:Object.entries(c.results).map(([label,r])=>{
   const method=mapping[c.id]?.[label];if(!['fixed','adaptive'].includes(method))fail('Missing randomized mapping.');if(c.status==='scored')totals[method]+=r.correctionCount;return {...r,method,initialSetting:mapping[c.id]?.initial?.[label]??null}
  })}))
- return {version:session.version,sessionId:session.id,lockedAt:session.lockedAt,finalizedAt:session.finalizedAt,scope:session.scope,correctionUnit:session.correctionUnit,acceptanceCriteria:session.criteria,skipPolicy:session.skipPolicy,profile:copy(session.profile),mapping:copy(mapping),cases,summary:{photos:session.cases.length,successful:successful.length,skipped:session.cases.filter(c=>c.status==='skipped').length,failed:session.cases.filter(c=>c.status==='failed').length,identical:successful.filter(c=>c.identical).length,corrections:totals,meanCorrections:successful.length?{fixed:totals.fixed/successful.length,adaptive:totals.adaptive/successful.length}:null,relativeReduction:totals.fixed>0?(totals.fixed-totals.adaptive)/totals.fixed:null,denominator:`${successful.length}/${session.cases.length} paired scored cases; failures/skips excluded from correction means and retained separately`}}
+ return {version:session.version,sessionId:session.id,lockedAt:session.lockedAt,finalizedAt:session.finalizedAt,scope:session.scope,baseline:session.baseline||'legacy-profile-median',correctionUnit:session.correctionUnit,acceptanceCriteria:session.criteria,skipPolicy:session.skipPolicy,profile:copy(session.profile),mapping:copy(mapping),cases,summary:{photos:session.cases.length,successful:successful.length,skipped:session.cases.filter(c=>c.status==='skipped').length,failed:session.cases.filter(c=>c.status==='failed').length,identical:successful.filter(c=>c.identical).length,corrections:totals,meanCorrections:successful.length?{fixed:totals.fixed/successful.length,adaptive:totals.adaptive/successful.length}:null,relativeReduction:totals.fixed>0?(totals.fixed-totals.adaptive)/totals.fixed:null,denominator:`${successful.length}/${session.cases.length} paired scored cases; failures/skips excluded from correction means and retained separately`}}
 }
 export function skipCase(session,caseId,reason){
  const next=copy(session),c=mutable(next,caseId)
@@ -56,7 +56,7 @@ export function saveRecord(storage,key,id,value){
  const records=JSON.parse(storage.getItem(key)||'{}'),old=records[id]
  if(old?.finalizedAt)fail('Finalized record cannot be overwritten.')
  if(key===SESSIONS_KEY&&old){
-  for(const field of ['id','version','lockedAt','scope','correctionUnit','criteria','skipPolicy','profile'])
+  for(const field of ['id','version','baseline','lockedAt','scope','correctionUnit','criteria','skipPolicy','profile'])
    if(JSON.stringify(old[field])!==JSON.stringify(value[field]))fail('Locked protocol/profile cannot change.')
   if(old.cases.length!==value.cases.length)fail('Frozen dataset cannot change.')
   for(let i=0;i<old.cases.length;i++){

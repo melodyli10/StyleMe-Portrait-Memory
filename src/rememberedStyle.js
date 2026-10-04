@@ -1,12 +1,16 @@
-import { adaptiveProfileEye } from './styleProfile.js'
+import { adaptiveProfileEye, profilePreferences } from './styleProfile.js'
 import { preferenceValues } from './preferences.js'
 
 // Both modes share mandatory warp safety. Adaptive can use the profile's
-// evidence-gated eye rule; without sufficient evidence it uses fixed strengths.
+// evidence-gated eye rule; without sufficient evidence it uses profile medians.
 // Every resolution is pure: confirmed examples/preferences are never rewritten.
-export function resolveRememberedStyle(saved, pipeline, mode='adaptive', includeFace=false, profile=null) {
+export function resolveRememberedStyle(saved, pipeline, mode='adaptive', includeFace=false, profile=null, fixedBaseline='first-example') {
   if(!['fixed','adaptive'].includes(mode))throw new Error('Unknown comparison mode.')
-  const preferences=preferenceValues(saved)
+  const first=profile?.examples?.[0]
+  const valid=value=>Number.isInteger(value)&&value>=0&&value<=100
+  const preferences=preferenceValues(mode==='fixed'&&first&&fixedBaseline==='first-example'
+    ? {eye:valid(first.eye)?first.eye:0,face:valid(first.face)?first.face:0}
+    : profilePreferences(profile)||saved)
   const applied={eye:0,face:0},notes=[]
   if(!pipeline)return {saved:preferences,applied,mode,notes:['No usable single-face detection. Edits skipped.']}
   if(pipeline.geometry.reason || pipeline.geometry.eyes.length!==2)notes.push(`Eye edit skipped: ${pipeline.geometry.reason || 'Invalid eye geometry.'}`)
@@ -24,7 +28,7 @@ export function resolveRememberedStyle(saved, pipeline, mode='adaptive', include
     notes.push(adaptation.reason)
   }
   notes.push(mode==='fixed'
-    ? 'Fixed Preset: saved slider strengths unchanged where eligible; mandatory algorithm safety checks still apply.'
+    ? first&&fixedBaseline==='first-example' ? 'Fixed Preset: first confirmed setup photo’s strengths, unchanged across portraits; mandatory safety checks still apply.' : 'Fixed Preset: legacy saved strengths; mandatory safety checks still apply.'
     : profile?.examples.length ? 'StyleMe Adaptive uses this photo’s valid geometry and the teaching evidence described above.' : 'StyleMe Adaptive: fitted to this photo’s landmarks. No additional strength adaptation is justified by the current measurements; eligible saved strengths are unchanged.')
   return {saved:preferences,applied,mode,notes}
 }

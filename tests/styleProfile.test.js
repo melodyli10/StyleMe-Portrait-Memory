@@ -35,7 +35,7 @@ test('five consistent examples support a distinct adaptive strength with honest 
   const p=learned(),g=pipeline(.2),median=profilePreferences(p)
   assert.equal(eyeAdaptationModel(p).ready,true)
   const fixed=resolveRememberedStyle(median,g,'fixed',false,p),adaptive=resolveRememberedStyle(median,g,'adaptive',false,p)
-  assert.equal(fixed.applied.eye,60);assert.equal(adaptive.applied.eye,70)
+  assert.equal(fixed.applied.eye,80);assert.equal(adaptive.applied.eye,70)
   assert.equal(fixed.applied.face,0);assert.equal(adaptive.applied.face,0)
   const a=new Uint8ClampedArray(g.render(fixed.applied.eye,0).data),b=new Uint8ClampedArray(g.render(adaptive.applied.eye,0).data)
   assert.notDeepEqual(a,b);assert.deepEqual(g.render(0,0).data,faceImage().data)
@@ -55,5 +55,17 @@ test('photo replacement, no-face, opt-in and reset do not mutate profile or orig
   first.render(100,30);second.render(r.applied.eye,r.applied.face)
   assert.deepEqual(second.render(0,0).data,faceImage().data)
   assert.deepEqual(resolveRememberedStyle(profilePreferences(p),null,'adaptive',true,p).applied,{eye:0,face:0})
+  assert.equal(JSON.stringify(p),before)
+})
+
+test('first-example baseline remains distinct from median fallback without changing confirmations',()=>{
+  // Synthetic constant geometry deliberately fails adaptation; strengths are the author-reported setup values.
+  const p={version:1,examples:[[34,57],[43,53],[46,65],[47,68],[43,65]].map(([eye,face],i)=>({...entry(i,.2,eye),face}))}
+  const before=JSON.stringify(p),g=pipeline(.2)
+  assert.equal(eyeAdaptationModel(p).ready,false)
+  assert.deepEqual(resolveRememberedStyle(profilePreferences(p),g,'fixed',true,p).applied,{eye:34,face:57})
+  assert.deepEqual(resolveRememberedStyle(profilePreferences(p),g,'adaptive',true,p).applied,{eye:43,face:65})
+  assert.deepEqual(resolveRememberedStyle(profilePreferences(p),g,'fixed',true,p,'profile-median').applied,{eye:43,face:65})
+  assert.deepEqual(resolveRememberedStyle(profilePreferences(p),null,'fixed',true,p).applied,{eye:0,face:0})
   assert.equal(JSON.stringify(p),before)
 })

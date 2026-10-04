@@ -49,7 +49,7 @@ $('process').addEventListener('click',async()=>{
   const original=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height),landmarks=faces[0].normalizedLandmarks,pipeline=createImagePipeline(original,landmarks)
   if(pipeline.geometry.reason){if(c.status==='pending')save(markCase(session,id,{status:'skipped',detection,reason:pipeline.geometry.reason}));throw new Error('Case skipped: eye geometry is unusable.')}
   if(session.version>=2&&pipeline.faceGeometry.reason){if(c.status==='pending')save(markCase(session,id,{status:'skipped',detection,reason:pipeline.faceGeometry.reason}));throw new Error('Case skipped: face geometry is unusable.')}
-  const result=compareStyles(original,landmarks,profilePreferences(session.profile),session.profile,session.version>=2)
+  const result=compareStyles(original,landmarks,profilePreferences(session.profile),session.profile,session.version>=2,session.version>=3?'first-example':'profile-median')
   mapping[id].initial=Object.fromEntries(['A','B'].map(label=>[label,session.version>=2?result.outputs.find(r=>r.mode===mapping[id][label]).applied:result.outputs.find(r=>r.mode===mapping[id][label]).applied.eye]));saveRecord(localStorage,MAPPINGS_KEY,session.id,mapping)
   if(c.status==='pending')save(markCase(session,id,{status:'ready',detection,identical:result.identical,latencyMs:performance.now()-started}))
   current={id,original,pipeline,outputs:result.outputs}

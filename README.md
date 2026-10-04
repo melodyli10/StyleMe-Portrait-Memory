@@ -41,7 +41,7 @@ The stack is vanilla JavaScript, HTML/CSS, Vite, MediaPipe Tasks Vision, Canvas 
 
 ## Evaluation
 
-Five development photos establish the confirmed profile; ten different held-out photos compare Fixed Preset with StyleMe. One correction unit is one supported setting still requiring adjustment. Eye Enlargement and Face Slimming each score 0 or 1, giving 0–2 per output. The proposal target is at least 30% fewer average corrections than Fixed Preset. **Pending final held-out evaluation.** Skips/failures remain separate, never zero-correction successes. Existing eye-only sessions retain their original scoring contract; start a new session for the final two-parameter protocol.
+Five development photos establish the confirmed profile; ten different held-out photos compare Fixed Preset with StyleMe. Fixed Preset freezes the first confirmed setup photo’s strengths; StyleMe uses the five-photo median, with eye adaptation only when the existing evidence checks pass. One correction unit is one supported setting still requiring adjustment. Eye Enlargement and Face Slimming each score 0 or 1, giving 0–2 per output. The proposal target is at least 30% fewer average corrections than Fixed Preset. **Pending final held-out evaluation.** Skips/failures remain separate, never zero-correction successes. Existing eye-only sessions retain their original scoring contract; start a new version-3 session for the corrected first-example baseline. Older sessions retain their original baseline.
 
 ## Privacy and limits
 
@@ -56,3 +56,5 @@ This prototype is prepared for the PE6201 End-of-Course Project.
 Codex was used as a coding assistant to implement and debug parts of the browser prototype. The project framing, product scope, retouch-memory logic, evaluation design, final validation and interpretation of results were defined and verified by the author.
 
 Final held-out scoring remains pending; automated checks are not research results.
+
+Development result reported by the author: confirmed Eye/Face pairs are 34/57, 43/53, 46/65, 47/68 and 43/65. The geometry/preference relationship did not pass validation. Fixed Preset is therefore 34/57 and StyleMe falls back to median 43/65, subject to existing per-image safety rules. No adaptation checks or confirmations were changed, and no held-out improvement is claimed.

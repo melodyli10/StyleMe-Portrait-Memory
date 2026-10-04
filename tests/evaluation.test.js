@@ -53,7 +53,7 @@ test('explicit skips retain partial scores but exclude them from paired means',a
 
 test('new protocol scores both settings; old sessions keep their original metric',()=>{
  let {session,mapping}=lockProtocol(config(),()=>.1)
- assert.equal(session.version,2)
+ assert.equal(session.version,3)
  session=markCase(session,'H01',{status:'ready',detection:'1 face'})
  assert.throws(()=>recordScore(session,'H01','A',{correction:false,accepted:50}))
  session=recordScore(session,'H01','A',{correction:true,accepted:60,faceCorrection:true,faceAccepted:25})
