@@ -7,13 +7,13 @@ const copy=value=>JSON.parse(JSON.stringify(value))
 const fail=message=>{throw new Error(message)}
 export function lockProtocol({id,profile,digests,criteria,skipPolicy},random=()=>crypto.getRandomValues(new Uint32Array(1))[0]/2**32){
  profile=validateProfile(profile)
- if(!id||profile?.examples?.length!==5||profile.examples.some(e=>e.eye===null))fail('Exactly five confirmed setup examples are required.')
+ if(!id||profile?.examples?.length!==5||profile.examples.some(e=>e.eye===null||e.face===null))fail('Exactly five confirmed setup examples are required.')
  if(!Array.isArray(digests)||digests.length!==10||new Set(digests).size!==10||digests.some(d=>!/^[a-f0-9]{64}$/.test(d)))fail('Select ten distinct held-out photos.')
  if(digests.some(d=>profile.examples.some(e=>e.photoId===d)))fail('A held-out photo duplicates a setup photo.')
  if(!criteria?.trim()||!skipPolicy?.trim())fail('Specify acceptance criteria and failure/skip handling before locking.')
  const cases=digests.map((digest,i)=>({id:`H${String(i+1).padStart(2,'0')}`,digest,status:'pending',detection:null,skipReason:null,identical:null,results:{}}))
  const mapping=Object.fromEntries(cases.map(c=>[c.id,random()<.5?{A:'fixed',B:'adaptive'}:{A:'adaptive',B:'fixed'}]))
- return {session:{id,version:1,lockedAt:new Date().toISOString(),scope:'Eye Enlargement only; Face Slimming outside the formal scope',correctionUnit:'One supported parameter requiring adjustment; intermediate slider movements do not count.',criteria:criteria.trim(),skipPolicy:skipPolicy.trim(),profile:copy(profile),cases,finalizedAt:null},mapping}
+ return {session:{id,version:2,lockedAt:new Date().toISOString(),scope:'Eye Enlargement and Face Slimming; 0–2 correction units per output',correctionUnit:'One supported parameter requiring adjustment; intermediate slider movements do not count.',criteria:criteria.trim(),skipPolicy:skipPolicy.trim(),profile:copy(profile),cases,finalizedAt:null},mapping}
 }
 function mutable(session,caseId){if(session.finalizedAt)fail('Session is finalized. Scores cannot change.');const c=session.cases.find(c=>c.id===caseId);if(!c)fail('Unknown case.');return c}
 export function markCase(session,caseId,{status,detection,reason=null,identical=null,latencyMs=null}){
@@ -24,11 +24,13 @@ export function markCase(session,caseId,{status,detection,reason=null,identical=
  Object.assign(c,{status,detection,skipReason:reason,identical:status==='ready'?Boolean(identical):null,latencyMs:Number.isFinite(latencyMs)?Math.round(latencyMs):null})
  return next
 }
-export function recordScore(session,caseId,label,{correction,accepted,artifacts=''}){
+export function recordScore(session,caseId,label,{correction,accepted,faceCorrection,faceAccepted,artifacts=''}){
  const next=copy(session),c=mutable(next,caseId)
  if(c.status!=='ready'||!['A','B'].includes(label)||c.results[label])fail('This result is unavailable or already scored.')
  if(typeof correction!=='boolean'||!Number.isInteger(accepted)||accepted<0||accepted>100)fail('A valid accepted setting and correction decision are required.')
- c.results[label]={label,correctionCount:correction?1:0,parameter:correction?'eye':null,accepted,artifacts:String(artifacts),completedAt:new Date().toISOString()}
+ if(session.version>=2&&(typeof faceCorrection!=='boolean'||!Number.isInteger(faceAccepted)||faceAccepted<0||faceAccepted>100))fail('A valid face setting and correction decision are required.')
+ c.results[label]={label,correctionCount:(correction?1:0)+(session.version>=2&&faceCorrection?1:0),parameter:correction?'eye':null,accepted,artifacts:String(artifacts),completedAt:new Date().toISOString()}
+ if(session.version>=2)Object.assign(c.results[label],{eyeCorrection:correction?1:0,faceSlimmingCorrection:faceCorrection?1:0,faceAccepted})
  if(c.results.A&&c.results.B)c.status='scored'
  return next
 }
@@ -43,7 +45,7 @@ export function exportResults(session,mapping){
  const cases=session.cases.map(c=>({caseId:c.id,digest:c.digest,status:c.status,detection:c.detection,skipReason:c.skipReason,identical:c.identical,latencyMs:c.latencyMs,results:Object.entries(c.results).map(([label,r])=>{
   const method=mapping[c.id]?.[label];if(!['fixed','adaptive'].includes(method))fail('Missing randomized mapping.');if(c.status==='scored')totals[method]+=r.correctionCount;return {...r,method,initialSetting:mapping[c.id]?.initial?.[label]??null}
  })}))
- return {version:1,sessionId:session.id,lockedAt:session.lockedAt,finalizedAt:session.finalizedAt,scope:session.scope,correctionUnit:session.correctionUnit,acceptanceCriteria:session.criteria,skipPolicy:session.skipPolicy,profile:copy(session.profile),mapping:copy(mapping),cases,summary:{photos:session.cases.length,successful:successful.length,skipped:session.cases.filter(c=>c.status==='skipped').length,failed:session.cases.filter(c=>c.status==='failed').length,identical:successful.filter(c=>c.identical).length,corrections:totals,meanCorrections:successful.length?{fixed:totals.fixed/successful.length,adaptive:totals.adaptive/successful.length}:null,relativeReduction:totals.fixed>0?(totals.fixed-totals.adaptive)/totals.fixed:null,denominator:`${successful.length}/${session.cases.length} paired scored cases; failures/skips excluded from correction means and retained separately`}}
+ return {version:session.version,sessionId:session.id,lockedAt:session.lockedAt,finalizedAt:session.finalizedAt,scope:session.scope,correctionUnit:session.correctionUnit,acceptanceCriteria:session.criteria,skipPolicy:session.skipPolicy,profile:copy(session.profile),mapping:copy(mapping),cases,summary:{photos:session.cases.length,successful:successful.length,skipped:session.cases.filter(c=>c.status==='skipped').length,failed:session.cases.filter(c=>c.status==='failed').length,identical:successful.filter(c=>c.identical).length,corrections:totals,meanCorrections:successful.length?{fixed:totals.fixed/successful.length,adaptive:totals.adaptive/successful.length}:null,relativeReduction:totals.fixed>0?(totals.fixed-totals.adaptive)/totals.fixed:null,denominator:`${successful.length}/${session.cases.length} paired scored cases; failures/skips excluded from correction means and retained separately`}}
 }
 export function skipCase(session,caseId,reason){
  const next=copy(session),c=mutable(next,caseId)

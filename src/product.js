@@ -1,3 +1,4 @@
+import {fitDisplayRectangle,comparisonPercent} from './displayRectangle.js'
 import {mountInteractions} from './interactions.js'
 import {mountProductUX} from './productUX.js'
 import {pngBlob,downloadBlob} from './exportImage.js'
@@ -34,21 +35,32 @@ export function mountProduct(app,editor,memory,api){
  byId('studio-replace').onclick=()=>byId('upload').click()
  let route='',lastOriginal=null,lastLandmarks=null,animation=null
  const comparison=byId('comparison')
- const sizePreview=()=>{const s=api.session();if(!s.original)return;const stage=byId('preview'),ratio=s.original.width/s.original.height;comparison.style.setProperty('--photo-ratio',ratio);if(!byId('large-preview').checked){const width=Math.min(stage.clientWidth*.88,(stage.clientHeight*.80-24)*ratio);if(width>0)comparison.style.width=width+'px'}else comparison.style.width='100%'}
+ // Every original/edited/debug layer inherits this one fitted rectangle.
+ const sizePreview=()=>{
+  const s=api.session();if(!s.original)return
+  const stage=byId('preview'),large=byId('large-preview').checked
+  const rect=fitDisplayRectangle(s.original.width,s.original.height,stage.clientWidth*(large?.96:.88),Math.max(0,stage.clientHeight*(large?.96:.80)-24))
+  if(!rect.width)return
+  comparison.style.width=rect.width+'px'
+  comparison.style.setProperty('--display-height',rect.height+'px')
+ }
+
  new ResizeObserver(sizePreview).observe(byId('preview'))
  comparison.classList.add('split-comparison')
  comparison.insertAdjacentHTML('beforeend','<div id="comparison-divider" role="slider" aria-label="Before/after divider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0"><span>↔</span></div>')
- workspace.querySelector('.preview-footer').insertAdjacentHTML('beforeend','<button class="secondary" id="reset-divider">Center divider</button>')
+ // Status labels belong to the stage, outside the clipped image and divider.
+ const labels=document.createElement('div');labels.className='comparison-labels'
+ comparison.querySelectorAll('figcaption').forEach(caption=>labels.append(caption))
+ byId('preview').prepend(labels)
  let position=50,dragging=false
  function setDivider(value){position=Math.max(0,Math.min(100,value));comparison.style.setProperty('--split',`${position}%`);byId('comparison-divider').setAttribute('aria-valuenow',String(Math.round(position)))}
  setDivider(50)
  const divider=byId('comparison-divider')
  divider.addEventListener('pointerdown',e=>{dragging=true;divider.setPointerCapture(e.pointerId);e.preventDefault()})
- divider.addEventListener('pointermove',e=>{if(dragging){const r=comparison.getBoundingClientRect();setDivider(100*(e.clientX-r.left)/r.width)}})
+ divider.addEventListener('pointermove',e=>{if(dragging){const r=comparison.getBoundingClientRect();setDivider(comparisonPercent(e.clientX,r.left,r.width))}})
  for(const event of ['pointerup','pointercancel','lostpointercapture'])divider.addEventListener(event,()=>dragging=false)
  divider.addEventListener('keydown',e=>{const values={ArrowLeft:position-2,ArrowRight:position+2,Home:0,End:100};if(e.key in values){e.preventDefault();setDivider(values[e.key])}})
- byId('reset-divider').addEventListener('click',()=>setDivider(50))
- byId('large-preview').addEventListener('change',()=>{comparison.classList.toggle('split-comparison',!byId('large-preview').checked);requestAnimationFrame(sizePreview)})
+ byId('large-preview').addEventListener('change',()=>{requestAnimationFrame(sizePreview)})
  let hintShown=false
  function renderSummary(){
   sizePreview();const s=api.session(),count=s.profile?.examples.length||0,preferred=profilePreferences(s.profile)||s.preferences

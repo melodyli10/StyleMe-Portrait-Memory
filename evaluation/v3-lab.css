@@ -8,3 +8,4 @@ body main{max-width:1460px;padding-top:32px}.prepare-grid{grid-template-columns:
 .lab-stages button{min-width:0;white-space:normal;overflow-wrap:break-word}
 .lab-progress progress{display:block;flex:0 0 180px;max-width:100%}
 @media(max-width:850px){.lab-stages{grid-template-columns:repeat(2,minmax(0,1fr))}.evaluation-scope{padding-top:0}}
+.outputs fieldset{min-width:0;border:1px solid #dfe3d8;border-radius:12px;padding:12px 16px;margin:16px 0}.outputs legend{padding:0 6px;color:#526954}.outputs fieldset label{margin:10px 0}

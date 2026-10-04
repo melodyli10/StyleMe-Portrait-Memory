@@ -1,4 +1,7 @@
-const rows=`Your personal style, taking shape.|你的专属风格，正在形成。|나만의 스타일, 만들어가는 중이에요.
+const rows=`Illustrated preferences|示意偏好|예시 보정 설정
+Your style, applied.|已应用你的风格。|나만의 스타일을 적용했어요.
+Portrait could not load. Replay to retry.|肖像未能加载，请重新演示。|사진을 불러오지 못했어요. 다시 재생해 주세요.
+Your personal style, taking shape.|你的专属风格，正在形成。|나만의 스타일, 만들어가는 중이에요.
 Your personal style, saved and ready.|你的专属风格，已经准备好了。|나만의 스타일, 준비됐어요.
 PORTRAIT EDITING, PERSONAL TO YOU|专属于你的肖像编辑|나를 위한 인물 보정
 Inspect cheeks, hair and background before export. Strong angles or an obscured jaw may reduce the available range.|导出前请检查脸颊、头发和背景。转角较大或下颌被遮挡时，可用调整范围会减小。|내보내기 전에 볼 윤곽, 머리카락과 배경을 확인하세요. 얼굴 각도가 크거나 턱이 가려지면 보정 범위가 줄어들 수 있습니다.

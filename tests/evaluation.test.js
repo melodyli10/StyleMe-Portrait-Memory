@@ -10,19 +10,19 @@ test('A/B assignments can swap and are separate from blinded records',()=>{const
 test('records corrections per parameter, protects scored results and retains failures',()=>{
  let {session,mapping}=lockProtocol(config(),()=>.1)
  session=markCase(session,'H01',{status:'ready',detection:'1 face',identical:false})
- session=recordScore(session,'H01','A',{correction:true,accepted:60,artifacts:'synthetic'})
- assert.throws(()=>recordScore(session,'H01','A',{correction:false,accepted:50}))
+ session=recordScore(session,'H01','A',{correction:true,accepted:60,faceCorrection:false,faceAccepted:0,artifacts:'synthetic'})
+ assert.throws(()=>recordScore(session,'H01','A',{correction:false,accepted:50,faceCorrection:false,faceAccepted:0}))
  assert.throws(()=>recordScore(session,'H01','B',{correction:true,accepted:NaN}))
- session=recordScore(session,'H01','B',{correction:false,accepted:50})
+ session=recordScore(session,'H01','B',{correction:false,accepted:50,faceCorrection:false,faceAccepted:0})
  for(let i=2;i<=10;i++)session=markCase(session,`H${String(i).padStart(2,'0')}`,{status:i===2?'failed':'skipped',detection:'not usable',reason:'synthetic fixture'})
  session=finalize(session);const result=exportResults(session,mapping)
  assert.equal(result.summary.successful,1);assert.equal(result.summary.failed,1);assert.equal(result.summary.skipped,8)
  assert.deepEqual(result.summary.corrections,{fixed:1,adaptive:0});assert.equal(result.summary.relativeReduction,1)
- assert.throws(()=>recordScore(session,'H01','A',{correction:true,accepted:60}));assert.throws(()=>markCase(session,'H03',{status:'ready'}))
+ assert.throws(()=>recordScore(session,'H01','A',{correction:true,accepted:60,faceCorrection:false,faceAccepted:0}));assert.throws(()=>markCase(session,'H03',{status:'ready'}))
 })
 test('identical outputs and zero baseline do not invent an improvement',()=>{
  let {session,mapping}=lockProtocol(config())
- for(const c of session.cases){session=markCase(session,c.id,{status:'ready',detection:'1 face',identical:true});for(const label of ['A','B'])session=recordScore(session,c.id,label,{correction:false,accepted:50})}
+ for(const c of session.cases){session=markCase(session,c.id,{status:'ready',detection:'1 face',identical:true});for(const label of ['A','B'])session=recordScore(session,c.id,label,{correction:false,accepted:50,faceCorrection:false,faceAccepted:0})}
  const result=exportResults(finalize(session),mapping);assert.equal(result.summary.identical,10);assert.equal(result.summary.relativeReduction,null);assert.deepEqual(result.summary.meanCorrections,{fixed:0,adaptive:0})
 })
 test('finalized local records cannot be overwritten silently',()=>{const data=new Map(),storage={getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v)};saveRecord(storage,'test','s',{finalizedAt:'locked'});assert.throws(()=>saveRecord(storage,'test','s',{}))})
@@ -36,16 +36,31 @@ test('locked protocol, dataset, assignments and partial scores resist stale over
  assert.throws(()=>saveRecord(storage,MAPPINGS_KEY,session.id,{...mapping,H01:{A:'adaptive',B:'fixed'}}))
  session=markCase(session,'H01',{status:'ready',detection:'1 face'});saveRecord(storage,SESSIONS_KEY,session.id,session)
  const stale=structuredClone(session)
- session=recordScore(session,'H01','A',{correction:true,accepted:60});saveRecord(storage,SESSIONS_KEY,session.id,session)
+ session=recordScore(session,'H01','A',{correction:true,accepted:60,faceCorrection:false,faceAccepted:0});saveRecord(storage,SESSIONS_KEY,session.id,session)
  assert.throws(()=>saveRecord(storage,SESSIONS_KEY,session.id,stale))
 })
 test('explicit skips retain partial scores but exclude them from paired means',async()=>{
  const {skipCase}=await import('../evaluation/protocol.js')
  let {session,mapping}=lockProtocol(config(),()=>.1)
  session=markCase(session,'H01',{status:'ready',detection:'1 face'})
- session=recordScore(session,'H01','A',{correction:true,accepted:60})
+ session=recordScore(session,'H01','A',{correction:true,accepted:60,faceCorrection:false,faceAccepted:0})
  for(const c of session.cases)session=skipCase(session,c.id,'Synthetic mechanics: cannot complete scoring')
  const result=exportResults(finalize(session),mapping)
  assert.equal(result.cases[0].results.length,1);assert.equal(result.summary.skipped,10)
  assert.deepEqual(result.summary.corrections,{fixed:0,adaptive:0});assert.equal(result.summary.meanCorrections,null)
+})
+
+
+test('new protocol scores both settings; old sessions keep their original metric',()=>{
+ let {session,mapping}=lockProtocol(config(),()=>.1)
+ assert.equal(session.version,2)
+ session=markCase(session,'H01',{status:'ready',detection:'1 face'})
+ assert.throws(()=>recordScore(session,'H01','A',{correction:false,accepted:50}))
+ session=recordScore(session,'H01','A',{correction:true,accepted:60,faceCorrection:true,faceAccepted:25})
+ assert.equal(session.cases[0].results.A.correctionCount,2)
+ assert.equal(session.cases[0].results.A.faceSlimmingCorrection,1)
+ const legacy={...session,version:1,cases:[{...session.cases[0],results:{}}]}
+ const scored=recordScore(legacy,'H01','A',{correction:true,accepted:60})
+ assert.equal(scored.cases[0].results.A.correctionCount,1)
+ assert.equal(scored.cases[0].results.A.faceAccepted,undefined)
 })

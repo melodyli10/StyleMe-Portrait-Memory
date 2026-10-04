@@ -42,15 +42,21 @@ button.onclick=async()=>{
   let score=null,error=''
   const panel=scoringPanel({label:'A',pixels,initialEye:50,pipeline,onScore:value=>score=value,onError:value=>error=value})
   document.body.append(panel)
-  check(!panel.textContent.includes('adaptive')&&!panel.textContent.includes('Fixed Preset')&&panel.querySelector('.accepted').value==='','production scoring component hides method and initial strength')
-  panel.querySelector('.accepted').value='65';panel.querySelector('.correct').checked=true;panel.querySelector('.score').click()
+  check(!panel.textContent.includes('adaptive')&&!panel.textContent.includes('Fixed Preset')&&panel.querySelector('.eye-accepted').value==='','production scoring component hides method and initial strength')
+  panel.querySelector('.eye-accepted').value='65';panel.querySelector('.eye-correct').checked=true;panel.querySelector('.score').click()
   check(!score&&error.includes('Preview'),'a correction must be previewed before scoring')
   panel.querySelector('.preview').click();panel.querySelector('.score').click()
   check(score?.correction&&score.accepted===65&&panel.querySelector('.score').disabled,'actual scoring component records final corrected parameter and locks')
   const unchanged=scoringPanel({label:'B',pixels,initialEye:50,pipeline,onScore:value=>score=value,onError:value=>error=value})
   document.body.append(unchanged);unchanged.querySelector('.score').click()
   check(score.correction===false&&score.accepted===50,'unchanged anonymous output records zero corrections without displaying its initial value')
-  panel.remove();unchanged.remove()
+  const both=scoringPanel({label:'A',pixels,initialEye:50,initialFace:20,twoDimensions:true,pipeline,onScore:value=>score=value,onError:value=>error=value})
+  document.body.append(both)
+  both.querySelector('.eye-correct').checked=true;both.querySelector('.eye-accepted').value='65'
+  both.querySelector('.face-correct').checked=true;both.querySelector('.face-accepted').value='35'
+  both.querySelector('.preview').click();both.querySelector('.score').click()
+  check(score.correction&&score.faceCorrection&&score.accepted===65&&score.faceAccepted===35&&both.querySelector('.score').disabled,'two-dimensional anonymous correction preview records both decisions and locks')
+  panel.remove();unchanged.remove();both.remove()
   report.textContent+='Complete. Anonymous scoring UI used synthetic pixels/landmarks through the real warp; no-face Lab fixtures tested MediaPipe skips. These are mechanics checks, not portrait evaluation results.\n' 
  }catch(e){report.textContent+=`FAIL / BLOCKED: ${e.message}\n`}
  finally{for(const [k,v]of backup){if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}frame.src='/evaluation/';button.disabled=false;report.textContent+='Previous profile and evaluation records restored.'}

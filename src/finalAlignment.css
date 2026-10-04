@@ -128,3 +128,29 @@ body #app #profile-heading{max-width:650px}
 body #app .snippet-body:has(.snippet-tools:empty)>:first-child{grid-column:1/-1}
 
 body #app #empty .portrait-symbol{width:50px;height:50px;min-height:0;font-size:26px}
+/* One source-ratio rectangle for all editor layers, including large-preview mode. */
+body #app .editor-layout .preview:has(.comparison.large){height:var(--stage-height);min-height:0;padding:0;overflow:hidden}
+body #app .comparison.split-comparison,body #app .comparison.split-comparison.large{display:block;max-width:100%;flex:none}
+body #app .comparison.split-comparison>figure{margin:0;width:100%;min-width:0}
+body #app .comparison.split-comparison .canvas-stack{width:100%;height:var(--display-height);max-height:none;aspect-ratio:auto}
+body #app .comparison.split-comparison canvas{width:100%;height:100%;max-width:none;max-height:none;object-fit:contain}
+/* Stable image composition: natural ratio, one focal point, proportional scaling. */
+body #app .mission-portrait{width:min(100%,260px);height:auto;max-height:none;aspect-ratio:1122/1402;object-fit:contain;object-position:center;justify-self:center;align-self:end}
+body #app .snippet-photo,body #app .snippet-upload{display:flex;align-items:center;justify-content:center;position:relative;overflow:visible;height:280px;max-height:none;min-height:0}
+body #app .snippet-image-frame{position:relative;flex:none;max-width:100%;overflow:hidden}
+body #app .snippet-image-frame img{display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:contain;position:static;transform:none}
+body #app .snippet-image-frame .snippet-after{position:absolute;inset:0;width:100%;height:100%;clip-path:inset(0 0 0 var(--mini-split,50%));pointer-events:none}
+body #app .snippet-after::after{content:'';position:absolute;inset:0;background:#b7cbb526;pointer-events:none}
+body #app .snippet-image-frame .snippet-line{position:absolute;left:var(--mini-split,50%);top:0;bottom:0;transform:translateX(-50%);width:30px;background:none;touch-action:none;cursor:ew-resize;z-index:3}
+body #app .snippet-line::before{content:'';position:absolute;left:14px;width:2px;height:100%;background:white;box-shadow:0 0 2px #2228}
+body #app .snippet-line::after{content:'↔';position:absolute;top:50%;left:0;background:#fff;color:#526954;border-radius:50%;width:30px;height:30px;display:grid;place-items:center}
+body #app .snippet-divider{touch-action:pan-y;pointer-events:auto;position:relative;z-index:4;min-height:32px}
+body #app .snippet-slider output{float:none;margin-left:8px;font-variant-numeric:tabular-nums}
+
+/* Labels remain in independent stage columns, never clipped by the divider. */
+body #app .comparison-labels{position:absolute;top:16px;left:3%;width:94%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:16px;align-items:start;z-index:4;pointer-events:none}
+body #app .comparison-labels figcaption{position:static;margin:0;min-width:0;white-space:normal;overflow-wrap:anywhere;font-size:11px;line-height:1.5;letter-spacing:.03em;color:#677264}
+body #app .comparison-labels figcaption:last-child{text-align:right}
+body #app .preview:has(#empty:not([hidden])) .comparison-labels{display:none}
+body #app .split-comparison #comparison-divider{top:0}
+body #app .editor-layout .preview{position:relative}

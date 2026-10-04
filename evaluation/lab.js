@@ -48,14 +48,15 @@ $('process').addEventListener('click',async()=>{
   if(faces.length!==1){if(c.status==='pending')save(markCase(session,id,{status:'skipped',detection,reason:'Exactly one detected face is required.'}));throw new Error('Case skipped: exactly one face required.')}
   const original=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height),landmarks=faces[0].normalizedLandmarks,pipeline=createImagePipeline(original,landmarks)
   if(pipeline.geometry.reason){if(c.status==='pending')save(markCase(session,id,{status:'skipped',detection,reason:pipeline.geometry.reason}));throw new Error('Case skipped: eye geometry is unusable.')}
-  const result=compareStyles(original,landmarks,profilePreferences(session.profile),session.profile,false)
-  mapping[id].initial=Object.fromEntries(['A','B'].map(label=>[label,result.outputs.find(r=>r.mode===mapping[id][label]).applied.eye]));saveRecord(localStorage,MAPPINGS_KEY,session.id,mapping)
+  if(session.version>=2&&pipeline.faceGeometry.reason){if(c.status==='pending')save(markCase(session,id,{status:'skipped',detection,reason:pipeline.faceGeometry.reason}));throw new Error('Case skipped: face geometry is unusable.')}
+  const result=compareStyles(original,landmarks,profilePreferences(session.profile),session.profile,session.version>=2)
+  mapping[id].initial=Object.fromEntries(['A','B'].map(label=>[label,session.version>=2?result.outputs.find(r=>r.mode===mapping[id][label]).applied:result.outputs.find(r=>r.mode===mapping[id][label]).applied.eye]));saveRecord(localStorage,MAPPINGS_KEY,session.id,mapping)
   if(c.status==='pending')save(markCase(session,id,{status:'ready',detection,identical:result.identical,latencyMs:performance.now()-started}))
   current={id,original,pipeline,outputs:result.outputs}
   $('case-status').textContent=`${id} · ready for blinded scoring. Both outputs use the same original. ${result.identical?'Outputs are pixel-identical.':''}`
   for(const label of ['A','B']){
    const result=current.outputs.find(r=>r.mode===mapping[id][label]),done=session.cases.find(c=>c.id===id).results[label]
-   $('outputs').append(scoringPanel({label,pixels:result,initialEye:result.applied.eye,done,pipeline,onError:status,onScore:score=>{
+   $('outputs').append(scoringPanel({label,pixels:result,initialEye:result.applied.eye,initialFace:result.applied.face,twoDimensions:session.version>=2,done,pipeline,onError:status,onScore:score=>{
     save(recordScore(session,id,label,score));status(`${id} ${label}: score locked; identity still hidden.`)
    }}))
   }
