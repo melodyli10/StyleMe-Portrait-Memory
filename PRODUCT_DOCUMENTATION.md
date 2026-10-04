@@ -123,7 +123,6 @@ The 57.1% result should not be attributed to geometry-based adaptation. That rel
 See:
 - [Evaluation protocol](evals/evaluation_protocol.md)
 - [Case-level results](evals/results.csv)
-- [Final evaluation export](evals/final_evaluation.json)
 
 ## Practical limits
 
