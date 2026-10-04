@@ -1,15 +1,41 @@
-# Evaluation
+# Final held-out evaluation
 
-**Pending final held-out evaluation.** `results.csv` is an empty 20-row template, not measured evidence or an application CSV export.
+Final version-3 held-out evaluation (baseline: `first-confirmed-example`, scope: Eye Enlargement + Face Slimming), supplied by the author:
 
-Fixed Preset freezes the first confirmed setup photo’s valid strengths and reuses them unchanged on every held-out portrait. StyleMe Smart Style uses the same retouch engine and can adapt eye strength when the teaching evidence supports it. StyleMe uses the five-photo median for Face Slimming; Fixed Preset uses the first example’s face strength. Both retain the existing current-face safety rules. Do not claim a separate learned face predictor.
+- 10 held-out portraits: **4 successfully scored paired cases**, 6 safely skipped, 0 failed.
+- Fixed Preset: **7 total corrections**, **1.75 mean corrections per scored image**.
+- StyleMe: **3 total corrections**, **0.75 mean corrections per scored image**.
+- Reduction: `(7 - 3) / 7 × 100 = 57.1%`, calculated only on the four evaluable paired cases.
 
-Five development examples establish the profile. The same ten held-out images are processed by both methods. Score each supported setting—Eye Enlargement and Face Slimming—as 0 (no adjustment) or 1 (adjustment required). An output has 0–2 correction units. Intermediate slider movements are not additional units.
+The original >=30% target was exceeded within the evaluable subset. This does not demonstrate broad generalization: only 4/10 portraits were evaluable. The six safety skips are excluded from correction means, not counted as successful zero-correction cases.
 
-Follow [the locked procedure](evaluation_protocol.md). The Lab records anonymous A/B scores, final accepted values, artifacts and separate skip/failure outcomes, then exports finalized JSON. Transfer actual finalized case-level results to the CSV template only after method identities are revealed. Preserve missing/skipped scores as empty, with a reason; do not fill them with zero.
+The protocol remained frozen and A/B identities were concealed until finalization. The author remained the evaluator and supplied the finalized results recorded in [results.csv](results.csv). The locked [evaluation procedure](evaluation_protocol.md) has not changed. The CSV is a documentation transcription, not a new application export format.
 
-Use totals and means over the same successful paired cases. Report the paired count out of ten. Reduction = `(FixedPresetCorrections - StyleMeCorrections) / FixedPresetCorrections × 100%`; it is undefined if the baseline is zero. The proposal target is >=30%, not an achieved result. All-skipped runs cannot demonstrate improvement.
+## Case-level outcomes
 
-The author is also the evaluator. Client-side blinding reduces obvious method cues but cannot eliminate bias or prevent inspection. The 15-image series is limited evidence. Actual development-set Face Slimming checks and final held-out scoring remain the author’s pending validation work.
+| Case | Fixed Preset corrections | StyleMe corrections | Outcome |
+| --- | ---: | ---: | --- |
+| H01 | — | — | Skipped: 0 faces detected |
+| H02 | — | — | Skipped: 0 faces detected |
+| H03 | 2 | 0 | Scored |
+| H04 | — | — | Skipped: 0 faces detected |
+| H05 | 2 | 2 | Scored |
+| H06 | 1 | 0 | Scored |
+| H07 | — | — | Skipped: unreliable / nearly closed eyes |
+| H08 | — | — | Skipped: 0 faces detected |
+| H09 | — | — | Skipped: eyes too small to adjust safely |
+| H10 | 2 | 1 | Scored |
 
-For the author’s completed setup, Fixed Preset is Eye 34 / Face 57; StyleMe is median Eye 43 / Face 65. The reported geometry/preference relationship did not pass validation, so StyleMe honestly uses the median fallback. Start a new version-3 Lab session to lock this baseline; legacy sessions retain their original definition. Held-out scores remain pending.
+Each setting contributes 0 if no further adjustment is needed or 1 if adjustment is required; each scored output has 0–2 units. Skipped CSV rows retain empty numeric fields and explicit reasons. Six skipped cases are not zero-correction wins. Means divide totals by four scored pairs, not ten portraits.
+
+## What was compared
+
+Fixed Preset used the first confirmed setup photo: Eye 34 / Face 57. The five confirmed Eye/Face pairs were 34/57, 43/53, 46/65, 47/68 and 43/65. Their geometry/preference relationship did not pass the existing validation checks. StyleMe therefore used the five-photo median fallback: Eye 43 / Face 65. No confirmations or adaptation checks were changed.
+
+The measured comparison is a first-example fixed preset versus a multi-example remembered median, subject to the same per-image safety rules. It is not evidence that geometry-dependent Eye adaptation produced the reduction. Face Slimming has no separate learned strength predictor.
+
+## Interpretation and limits
+
+The >=30% target was exceeded only within the four scored paired cases. StyleMe reduced manual correction needs on portraits it could safely process, but coverage was limited. The observed coverage bottleneck was reliable face/eye geometry on smaller or less suitable portraits: four no-face skips, one unreliable/nearly-closed-eye skip and one eyes-too-small skip. This small experiment does not establish broad generalization.
+
+The author evaluated their own preferences. Concealing A/B identities reduces obvious method cues but cannot eliminate evaluator bias or prevent source inspection. Software tests are separate from these supplied evaluation results.

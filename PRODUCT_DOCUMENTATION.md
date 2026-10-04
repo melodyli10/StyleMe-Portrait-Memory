@@ -37,9 +37,20 @@ The local Evaluation Lab freezes the five-example profile and ten-file digests, 
 
 ## Metrics reached
 
-Pending final held-out evaluation.
+Final version-3 held-out evaluation (baseline: `first-confirmed-example`, scope: Eye Enlargement + Face Slimming), supplied by the author:
 
-Later record Fixed Preset total corrections, StyleMe total corrections, average per successful paired image, percentage reduction and skip/failure observations. The empty template is not a result. The actual 15 development/evaluation portraits were not available during this implementation pass, so no development-set Face Slimming validation is claimed.
+- 10 held-out portraits: **4 successfully scored paired cases**, 6 safely skipped, 0 failed.
+- Fixed Preset: **7 total corrections**, **1.75 mean corrections per scored image**.
+- StyleMe: **3 total corrections**, **0.75 mean corrections per scored image**.
+- Reduction: `(7 - 3) / 7 × 100 = 57.1%`, calculated only on the four evaluable paired cases.
+
+The original >=30% target was exceeded within the evaluable subset. This does not demonstrate broad generalization: only 4/10 portraits were evaluable. The six safety skips are excluded from correction means, not counted as successful zero-correction cases.
+
+Safe-skip breakdown: four no-face cases (H01, H02, H04, H08), one unreliable/nearly-closed-eye case (H07), and one eyes-too-small case (H09). No processing failures were recorded.
+
+The setup geometry/preference relationship did not validate. The final StyleMe condition therefore used the five-photo median fallback (Eye 43 / Face 65), versus the first-example preset (Eye 34 / Face 57), subject to unchanged per-image safety rules. The 57.1% reduction is not evidence of geometry-dependent Eye adaptation.
+
+The protocol remained frozen and A/B identities were concealed until finalization; the author remained the evaluator. These author-supplied results are transcribed in [results.csv](evals/results.csv), not independently rerun here. StyleMe reduced manual correction needs on portraits it could safely process, but coverage was limited. In this set, the observed coverage bottleneck was reliable face/eye geometry on smaller or less suitable portraits.
 
 ## Practical limits
 

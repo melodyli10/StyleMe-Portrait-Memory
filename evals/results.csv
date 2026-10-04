@@ -1,21 +1,21 @@
-image_id,method,eye_correction,face_slimming_correction,total_corrections,notes
-eval_01,Fixed Preset,,,,
-eval_01,StyleMe,,,,
-eval_02,Fixed Preset,,,,
-eval_02,StyleMe,,,,
-eval_03,Fixed Preset,,,,
-eval_03,StyleMe,,,,
-eval_04,Fixed Preset,,,,
-eval_04,StyleMe,,,,
-eval_05,Fixed Preset,,,,
-eval_05,StyleMe,,,,
-eval_06,Fixed Preset,,,,
-eval_06,StyleMe,,,,
-eval_07,Fixed Preset,,,,
-eval_07,StyleMe,,,,
-eval_08,Fixed Preset,,,,
-eval_08,StyleMe,,,,
-eval_09,Fixed Preset,,,,
-eval_09,StyleMe,,,,
-eval_10,Fixed Preset,,,,
-eval_10,StyleMe,,,,
+image_id,case_id,method,status,eye_correction,face_slimming_correction,total_corrections,skip_reason,notes
+eval_01,H01,Fixed Preset,skipped,,,,Exactly one detected face is required.,0 faces detected
+eval_01,H01,StyleMe,skipped,,,,Exactly one detected face is required.,0 faces detected
+eval_02,H02,Fixed Preset,skipped,,,,Exactly one detected face is required.,0 faces detected
+eval_02,H02,StyleMe,skipped,,,,Exactly one detected face is required.,0 faces detected
+eval_03,H03,Fixed Preset,scored,1,1,2,,
+eval_03,H03,StyleMe,scored,0,0,0,,
+eval_04,H04,Fixed Preset,skipped,,,,Exactly one detected face is required.,0 faces detected
+eval_04,H04,StyleMe,skipped,,,,Exactly one detected face is required.,0 faces detected
+eval_05,H05,Fixed Preset,scored,1,1,2,,
+eval_05,H05,StyleMe,scored,1,1,2,,
+eval_06,H06,Fixed Preset,scored,0,1,1,,
+eval_06,H06,StyleMe,scored,0,0,0,,
+eval_07,H07,Fixed Preset,skipped,,,,Eye geometry is unreliable or the eyes are nearly closed.,
+eval_07,H07,StyleMe,skipped,,,,Eye geometry is unreliable or the eyes are nearly closed.,
+eval_08,H08,Fixed Preset,skipped,,,,Exactly one detected face is required.,0 faces detected
+eval_08,H08,StyleMe,skipped,,,,Exactly one detected face is required.,0 faces detected
+eval_09,H09,Fixed Preset,skipped,,,,The eyes are too small to adjust safely.,
+eval_09,H09,StyleMe,skipped,,,,The eyes are too small to adjust safely.,
+eval_10,H10,Fixed Preset,scored,1,1,2,,
+eval_10,H10,StyleMe,scored,0,1,1,,

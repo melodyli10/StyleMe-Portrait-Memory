@@ -37,17 +37,29 @@ The stack is vanilla JavaScript, HTML/CSS, Vite, MediaPipe Tasks Vision, Canvas 
 - `src/exportImage.js`: PNG export; `src/guideSnippet.js`: explicitly simulated walkthrough.
 - `evaluation/`: locked, anonymous scoring workflow and JSON export.
 - `tests/`: algorithm, state and workflow regression tests; browser test pages are development-only.
-- `data/`, `evals/`: dataset documentation and empty results template, not source portraits.
+- `data/`, `evals/`: dataset documentation and finalized case-level results, not source portraits.
 
 ## Evaluation
 
-Five development photos establish the confirmed profile; ten different held-out photos compare Fixed Preset with StyleMe. Fixed Preset freezes the first confirmed setup photo’s strengths; StyleMe uses the five-photo median, with eye adaptation only when the existing evidence checks pass. One correction unit is one supported setting still requiring adjustment. Eye Enlargement and Face Slimming each score 0 or 1, giving 0–2 per output. The proposal target is at least 30% fewer average corrections than Fixed Preset. **Pending final held-out evaluation.** Skips/failures remain separate, never zero-correction successes. Existing eye-only sessions retain their original scoring contract; start a new version-3 session for the corrected first-example baseline. Older sessions retain their original baseline.
+Five development photos establish the confirmed profile; ten different held-out photos compare Fixed Preset with StyleMe. Fixed Preset freezes the first confirmed setup photo’s strengths; StyleMe uses the five-photo median, with eye adaptation only when the existing evidence checks pass. One correction unit is one supported setting still requiring adjustment. Eye Enlargement and Face Slimming each score 0 or 1, giving 0–2 per output. The proposal target is at least 30% fewer average corrections than Fixed Preset. Skips/failures remain separate, never zero-correction successes. Existing eye-only sessions retain their original scoring contract; the finalized run used version 3 with the corrected first-example baseline. Older sessions retain their original baseline.
+
+
+Final version-3 held-out evaluation (baseline: `first-confirmed-example`, scope: Eye Enlargement + Face Slimming), supplied by the author:
+
+- 10 held-out portraits: **4 successfully scored paired cases**, 6 safely skipped, 0 failed.
+- Fixed Preset: **7 total corrections**, **1.75 mean corrections per scored image**.
+- StyleMe: **3 total corrections**, **0.75 mean corrections per scored image**.
+- Reduction: `(7 - 3) / 7 × 100 = 57.1%`, calculated only on the four evaluable paired cases.
+
+The original >=30% target was exceeded within the evaluable subset. This does not demonstrate broad generalization: only 4/10 portraits were evaluable. The six safety skips are excluded from correction means, not counted as successful zero-correction cases.
+
+Six portraits did not meet reliable single-face/eye geometry requirements. The five setup examples did not support a consistent geometry/preference relationship, so StyleMe used median Eye 43 / Face 65. No geometry-dependent improvement is claimed. See [case-level results](evals/results.csv).
 
 ## Privacy and limits
 
 Selected photos and landmarks are processed in the browser and are not uploaded by the editing flow. Confirmed numeric settings, compact geometry summaries and duplicate-check digests are stored locally; raw portraits and landmarks are not persisted. Evaluation records remain in localStorage until explicitly exported. Browser storage is not encrypted or a secure multi-user vault. Hosting, font and model requests still involve network access. The built-in sample cannot teach the profile or enter evaluation.
 
-The small evaluation set cannot establish broad generalization. Hair, occlusion and pose can limit contour edits; unsafe geometry may reduce or skip effects. No measured improvement or development-set validation is claimed here. Processing uses the user’s CPU/GPU and memory; no paid image-generation API is called. Downloads, hosting and device computation still have costs.
+The small evaluation set cannot establish broad generalization. Hair, occlusion and pose can limit contour edits; unsafe geometry may reduce or skip effects. The measured reduction applies only to the four safely processed pairs. Processing uses the user’s CPU/GPU and memory; no paid image-generation API is called. Downloads, hosting and device computation still have costs.
 
 ## Development note
 
@@ -55,6 +67,6 @@ This prototype is prepared for the PE6201 End-of-Course Project.
 
 Codex was used as a coding assistant to implement and debug parts of the browser prototype. The project framing, product scope, retouch-memory logic, evaluation design, final validation and interpretation of results were defined and verified by the author.
 
-Final held-out scoring remains pending; automated checks are not research results.
+The finalized scores were supplied by the author; automated software checks are not research results.
 
-Development result reported by the author: confirmed Eye/Face pairs are 34/57, 43/53, 46/65, 47/68 and 43/65. The geometry/preference relationship did not pass validation. Fixed Preset is therefore 34/57 and StyleMe falls back to median 43/65, subject to existing per-image safety rules. No adaptation checks or confirmations were changed, and no held-out improvement is claimed.
+Development result reported by the author: confirmed Eye/Face pairs are 34/57, 43/53, 46/65, 47/68 and 43/65. The geometry/preference relationship did not pass validation. Fixed Preset is therefore 34/57 and StyleMe falls back to median 43/65, subject to existing per-image safety rules. No adaptation checks or confirmations were changed, and the measured reduction is not attributed to geometry-dependent adaptation.
