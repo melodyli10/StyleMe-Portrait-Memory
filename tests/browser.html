@@ -1,0 +1,6 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>StyleMe browser checks</title>
+<style>body{font:15px system-ui;margin:24px;background:#fafaf7;color:#292c29}button,input{margin:10px 0}#crops{display:flex;gap:24px;flex-wrap:wrap}canvas{max-width:100%;height:auto;border:1px solid #ddd}iframe{width:100%;height:800px;border:1px solid #ddd}pre{white-space:pre-wrap}</style>
+<h1>StyleMe browser checks</h1><p>Choose a clear single-person portrait. This local test exercises the real app in the frame below, checks actual canvas pixels, and shows eye-area crops at maximum strength. Nothing is saved or uploaded.</p>
+<input id="fixture" type="file" accept="image/jpeg,image/png"><button type="button" id="public-sample">Use public test portrait</button><pre id="report">Choose a portrait to begin.</pre><div id="crops"></div><iframe id="app-frame" src="/" title="StyleMe under test"></iframe>
+<script type="module" src="./browserChecks.js"></script></html>
