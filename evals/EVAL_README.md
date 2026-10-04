@@ -69,7 +69,6 @@ The protocol, acceptance criteria, profile and held-out dataset were frozen befo
 See:
 - [Evaluation protocol](evaluation_protocol.md)
 - [Case-level results](results.csv)
-- [Final evaluation export](final_evaluation.json)
 
 ## Interpretation
 
